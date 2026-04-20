@@ -1,9 +1,12 @@
 package org.ezebarco.java.swing.jdbc;
 
 import javax.swing.*;
+import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 
 public class JdbcSwingCrudProject extends JFrame {
 
@@ -11,6 +14,7 @@ public class JdbcSwingCrudProject extends JFrame {
     private JTextField nameField = new JTextField();
     private JTextField priceField = new JTextField();
     private JTextField quantityField = new JTextField();
+    private ProductTableModel tableModel = new ProductTableModel();
 
     public JdbcSwingCrudProject() {
         super("Swing: GUI con Base de Datos MySQL!");
@@ -41,7 +45,18 @@ public class JdbcSwingCrudProject extends JFrame {
         formPanel.add(buttonSave);
         buttonSave.addActionListener(new AddActionListener());
 
-        p.add(formPanel, BorderLayout.WEST);
+        //Creo un panel para la tabla
+        JPanel tablePanel = new JPanel(new FlowLayout());
+
+        //Creo la tabla y le pongo un modelo de tabla
+        JTable jTable = new JTable();
+        jTable.setModel(this.tableModel);
+
+        //Creo un contenedor con barra de scroll y ponemos jTable adentro de este
+        JScrollPane scroll = new JScrollPane(jTable);
+        tablePanel.add(scroll);
+        p.add(tablePanel,BorderLayout.EAST); //Panel de tabla a la derecha
+        p.add(formPanel, BorderLayout.WEST); //Panel de form a la izquierda
         pack();
         setVisible(true);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -58,7 +73,45 @@ public class JdbcSwingCrudProject extends JFrame {
             int price = Integer.parseInt(priceField.getText());
             int quantity = Integer.parseInt(quantityField.getText());
 
-            Object[] product = new Object[]{name, price, quantity};
+            Object[] product = new Object[]{null, name, price, quantity};
+            //Agrego el producto a una fila de la tabla
+            tableModel.getRows().add(product);
+            //Se actualiza la grilla
+            tableModel.fireTableDataChanged();
+
+            nameField.setText("");
+            priceField.setText("");
+            quantityField.setText("");
+        }
+    }
+
+    private class ProductTableModel extends AbstractTableModel {
+
+        private String[] columns = new String[]{"Id", "Nombre", "Precio", "Cantidad"};
+        private List<Object[]> rows = new ArrayList<>();
+
+        public List<Object[]> getRows() {
+            return rows;
+        }
+
+        @Override
+        public int getRowCount() {
+            return rows.size();
+        }
+
+        @Override
+        public int getColumnCount() {
+            return columns.length;
+        }
+
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            return rows.get(rowIndex)[columnIndex];
+        }
+
+        @Override
+        public String getColumnName(int column) {
+            return columns[column];
         }
     }
 }
